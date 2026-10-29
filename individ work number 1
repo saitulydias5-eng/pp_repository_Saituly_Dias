@@ -1,0 +1,42 @@
+import re
+import sqlite3
+
+connection = sqlite3.connect(":memory:")
+cursor = connection.cursor()
+
+cursor.execute("""
+CREATE TABLE students (
+    name TEXT,
+    group_name TEXT,
+    score INTEGER,
+    email TEXT
+)
+""")
+
+students = [
+    ("Aida", "IS-24-01", 82, "aida@atu.edu.kz"),
+    ("Miras", "IS-24-01", 69, "miras@atu.edu.kz"),
+    ("Askar", "IS-24-01", 95, "askar@atu.edu.kz"),
+    ("Dana", "IS-24-02", 91, "dana@atu.edu.kz"),
+    ("Aliya", "IS-24-03", 87, "aliya@atu.edu.kz")
+]
+
+cursor.executemany("INSERT INTO students VALUES (?, ?, ?, ?)", students)
+
+domain_pattern = r"[A-Za-z0-9._%+-]+@atu\.edu\.kz"
+
+sql = """
+SELECT name, score, email
+FROM students
+WHERE score >= 90 AND group_name = ?
+"""
+
+results = cursor.execute(sql, ("IS-24-01",)).fetchall()
+filtered = [row for row in results if re.fullmatch(domain_pattern, row[2])]
+
+print("Excellent students in group IS-24-01:")
+
+for row in filtered:
+    print(f"- {row[0]}: score {row[1]}, email: {row[2]}")
+
+connection.close()
